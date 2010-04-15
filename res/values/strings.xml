@@ -3,4 +3,9 @@
     <string name="hello">Hello World, TabWeave!</string>
     <string name="app_name">Tab Weave</string>
 <string name="no_tabs">No tabs</string>
+<string name="username">Username</string>
+<string name="password">Password</string>
+<string name="passphrase">Passphrase</string>
+<string name="save">Save</string>
+<string name="settings">Settings</string>
 </resources>
