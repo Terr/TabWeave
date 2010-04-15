@@ -22,12 +22,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.ListActivity;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import biz.source_code.base64Coder.Base64Coder;
 
 public class TabWeave extends ListActivity {
@@ -40,7 +45,9 @@ public class TabWeave extends ListActivity {
     public static final String PREFS_NAME = "TabWeavePrefs";
     public static final String PREFS_PRIVATE_KEY    = "storageKeysPrivkey";
     public static final String PREFS_CRYPTO_TABS_SYMMETRIC_KEY    = "storageCryptoTabsSymmetricKey";
-    private SharedPreferences settings;
+    
+    public static final int MENU_SETTINGS = 1; 
+    public static final int ACTIVITY_EDIT_SETTINGS = 1;
 
     /** Called when the activity is first created. */
     @Override
@@ -60,8 +67,7 @@ public class TabWeave extends ListActivity {
         mWeaveTabsDbAdapter = new TabWeaveDbAdapter(this);
         mWeaveTabsDbAdapter.open();
         
-        settings        = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor settingsEdit;
+        TabViewConfig mTabWeaveConfig = new TabViewConfig(this, PREFS_NAME);
         
         mUserWeave      = new UserWeaveImpl();
         mCryptoWeave    = new CryptoWeaveImpl();
@@ -69,21 +75,18 @@ public class TabWeave extends ListActivity {
         try {
             
             // Check the settings if the weaveNode is already known. If not, request it
-            if(!settings.contains("weaveNode"))
+            if(!mTabWeaveConfig.preferences.contains("weaveNode"))
             {
-                settingsEdit   = settings.edit();
-                settingsEdit.putString("weaveNode", mUserWeave.getUserStorageNode(sUsername, null));
-                settingsEdit.commit();
+                mTabWeaveConfig.preferencesEdit.putString("weaveNode", mUserWeave.getUserStorageNode(sUsername, null));
+                mTabWeaveConfig.preferencesEdit.commit();
             }
 
-            sSyncServerUrl = settings.getString("weaveNode", null);
+            sSyncServerUrl = mTabWeaveConfig.preferences.getString("weaveNode", null);
             mSyncWeave      = new SyncWeaveImpl(sSyncServerUrl, sUsername, sPassword);
             
             // Check settings storage for the user's private key
-            if(!settings.contains(PREFS_PRIVATE_KEY) || settings.getString(PREFS_PRIVATE_KEY, "") == "")
+            if(!mTabWeaveConfig.preferences.contains(PREFS_PRIVATE_KEY) || mTabWeaveConfig.preferences.getString(PREFS_PRIVATE_KEY, "") == "")
             {
-                settingsEdit   = settings.edit();
-                
                 JSONObject oPrivKey     = mSyncWeave.getItem("keys", "privkey");
                 JSONObject oPrivPayload = new JSONObject(oPrivKey.getString("payload"));
                 //JSONObject oPubKey      = mSyncWeave.getItem("keys", "pubkey");
@@ -96,17 +99,15 @@ public class TabWeave extends ListActivity {
                 bytePrivateKeyDecrypted  = mCryptoWeave.decryptPrivateKey(sPassphrase, bytePrivateSalt, bytePrivateIV, bytePrivateKey);
                 
                 // Save the generated private key
-                settingsEdit.putString(PREFS_PRIVATE_KEY, new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
+                mTabWeaveConfig.preferencesEdit.putString(PREFS_PRIVATE_KEY, new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
                 
-                settingsEdit.commit();
+                mTabWeaveConfig.preferencesEdit.commit();
             }
             
-            bytePrivateKeyDecrypted     = Base64Coder.decode(settings.getString(PREFS_PRIVATE_KEY, ""));
+            bytePrivateKeyDecrypted     = Base64Coder.decode(mTabWeaveConfig.preferences.getString(PREFS_PRIVATE_KEY, ""));
             
-            if(!settings.contains(PREFS_CRYPTO_TABS_SYMMETRIC_KEY) || settings.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, "") == "")
+            if(!mTabWeaveConfig.preferences.contains(PREFS_CRYPTO_TABS_SYMMETRIC_KEY) || mTabWeaveConfig.preferences.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, "") == "")
             {
-                settingsEdit   = settings.edit();
-                
                 JSONObject oCryptoTabs          = mSyncWeave.getItem("crypto", "tabs");
                 JSONObject oCryptoTabsPayload   = new JSONObject(oCryptoTabs.getString("payload"));
                 JSONArray oCryptoTabsKeyring    = new JSONObject(oCryptoTabsPayload.getString("keyring")).toJSONArray(oCryptoTabsPayload.getJSONObject("keyring").names());
@@ -114,12 +115,12 @@ public class TabWeave extends ListActivity {
                 byte[] byteSymmetricKey         = Base64Coder.decode(new JSONObject(oCryptoTabsKeyring.getString(0)).getString("wrapped"));
                 byteSymmetricKeyDecrypted    = mCryptoWeave.decryptSymmetricKey(bytePrivateKeyDecrypted, byteSymmetricKey);
                 
-                settingsEdit.putString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
+                mTabWeaveConfig.preferencesEdit.putString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
             
-                settingsEdit.commit();
+                mTabWeaveConfig.preferencesEdit.commit();
             }
 
-            byteSymmetricKeyDecrypted   = Base64Coder.decode(settings.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, ""));
+            byteSymmetricKeyDecrypted   = Base64Coder.decode(mTabWeaveConfig.preferences.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, ""));
 
             // Request all tabs objects
             JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
@@ -223,5 +224,34 @@ public class TabWeave extends ListActivity {
         );
         
         setListAdapter(listAdapter);
+    }
+    
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        
+        TextView viewText   = (TextView)v.findViewById(R.id.url);
+        
+        Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse(viewText.getText().toString()));  
+        startActivity(viewIntent); 
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, MENU_SETTINGS,0, R.string.settings);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        switch(item.getItemId()) {
+        case MENU_SETTINGS:
+            Intent i    = new Intent(this, TabWeaveSettingsActivity.class);
+            startActivityForResult(i, ACTIVITY_EDIT_SETTINGS);
+            return true;
+        }
+        
+        return super.onMenuItemSelected(featureId, item);
     }
 }
