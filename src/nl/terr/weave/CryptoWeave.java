@@ -13,11 +13,11 @@ public interface CryptoWeave {
 
     public byte[] decryptPrivateKey(String sPassphrase, byte[] byteSalt, byte[] byteIv, byte[] bytePrivateKey)
         throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException;
-    
+
     public byte[] decryptSymmetricKey(byte[] byteDecryptedPrivateKey, byte[] byteSymmetricKey)
         throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, InvalidKeyException, IOException, NoSuchProviderException;
-    
+
     public byte[] decryptCipherText(byte[] byteDecryptedSymmetricKey, byte[] byteWboIV, byte[] byteCipherText)
         throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException;
-    
+
 }

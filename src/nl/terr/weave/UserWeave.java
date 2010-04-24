@@ -10,7 +10,7 @@ public interface UserWeave {
 
 	/**
 	 * Change the email address of the given user.
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @param newEmail
@@ -22,7 +22,7 @@ public interface UserWeave {
 
 	/**
 	 * Change the password of the given user.
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @param newPassword
@@ -35,7 +35,7 @@ public interface UserWeave {
 	/**
 	 * Returns a boolean for whether the given userID is available at the given
 	 * server.
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @throws WeaveException
@@ -46,7 +46,7 @@ public interface UserWeave {
 	 * Create a new user at the given server, with the given userID, password,
 	 * and email. If a secret is provided those will be provided as well. Note
 	 * that the exact new-user-authorization logic is determined by the server.
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @param email
@@ -61,7 +61,7 @@ public interface UserWeave {
 	 * and email. If a secret is provided, or a captchaChallenge/captchaResponse
 	 * pair, those will be provided as well. Note that the exact
 	 * new-user-authorization logic is determined by the server.
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @param email
@@ -76,7 +76,7 @@ public interface UserWeave {
 
 	/**
 	 * Delete the given userId
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @return
@@ -93,7 +93,7 @@ public interface UserWeave {
 	 * Returns the URL representing the storage node for the given user. Note
 	 * that in the 1.0 server implementation hosted by Mozilla, the password is
 	 * not actually required for this call.
-	 * 
+	 *
 	 * @param userId
 	 * @param password
 	 * @return
@@ -103,7 +103,7 @@ public interface UserWeave {
 
 	/**
 	 * Requests a password reset email be mailed to the email address on file.
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @throws WeaveException
@@ -114,7 +114,7 @@ public interface UserWeave {
 	 * Requests a password reset email be mailed to the email address on file.
 	 * If a secret is provided, or a captchaChallenge/captchaResponse pair,
 	 * those will be provided as well.
-	 * 
+	 *
 	 * @param userId
 	 * @param captchaChallenge
 	 * @param captchaResponse
