@@ -9,11 +9,11 @@
 // know, but it is available in many J2EE runtimes, including those from
 // JBoss, IBM, and Oracle.
 //
-// It's fairly simple to implement, so here it is. 
-// 
+// It's fairly simple to implement, so here it is.
+//
 // Created Sun Aug 09 01:06:57 2009
 //
-// last saved: 
+// last saved:
 // Time-stamp: <2009-August-09 02:19:50>
 // ------------------------------------------------------------------
 //
@@ -61,7 +61,7 @@ public class PBKDF2
             return DK;
         }
         return T;
-    } 
+    }
 
 
     private static void F( byte[] dest, int offset, Mac prf, byte[] S, int c, int blockIndex ) {
@@ -90,7 +90,7 @@ public class PBKDF2
         dest[offset + 1] = (byte) (i / (256 * 256));
         dest[offset + 2] = (byte) (i / (256));
         dest[offset + 3] = (byte) (i);
-    } 
+    }
 
     // ctor
     private PBKDF2 () {}
