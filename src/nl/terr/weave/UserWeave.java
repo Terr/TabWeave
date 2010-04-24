@@ -1,6 +1,6 @@
 package nl.terr.weave;
 
-import nl.terr.weave.exception.WeaveException;
+import info.elebescond.weave.exception.WeaveException;
 
 public interface UserWeave {
 

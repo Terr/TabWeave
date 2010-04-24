@@ -1,12 +1,12 @@
 package nl.terr.weave.impl;
 
+import info.elebescond.weave.exception.WeaveException;
+import nl.sanderborgman.http.HttpRequest;
 import nl.terr.weave.UserWeave;
-import nl.terr.weave.exception.WeaveException;
 
 import org.apache.http.impl.client.DefaultHttpClient;
-import android.util.Log;
 
-import nl.sanderborgman.http.HttpRequest;
+import android.util.Log;
 
 public class UserWeaveImpl implements UserWeave {
 

@@ -1,25 +1,17 @@
 package nl.terr.tabweave;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
+import info.elebescond.weave.exception.WeaveException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.NoSuchPaddingException;
-
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
-import nl.terr.weave.exception.WeaveException;
 import nl.terr.weave.impl.CryptoWeaveImpl;
 import nl.terr.weave.impl.SyncWeaveImpl;
 import nl.terr.weave.impl.UserWeaveImpl;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.ListActivity;
@@ -60,6 +52,13 @@ public class TabWeave extends ListActivity {
     SharedPreferences mTabWeavePrefs;
     SharedPreferences.Editor mTabWeavePrefsEdit;
     
+    String sUsername;
+    String sPassword;
+    String sPassphrase;
+    String sSyncServerUrl;
+    
+    byte[] bytePrivateKeyDecrypted; 
+    byte[] byteSymmetricKeyDecrypted;
     
     /** Called when the activity is first created. */
     @Override
@@ -71,140 +70,26 @@ public class TabWeave extends ListActivity {
 //        mWeaveTabsDbAdapter.open();
 
         mTabWeavePrefs    = this.getSharedPreferences(PREFS_NAME, 0);
+        
+        readPreferencesOrRedirectToSettings();
 
-        String sUsername    = mTabWeavePrefs.getString(PREFS_USERNAME, "");
-        String sPassword    = mTabWeavePrefs.getString(PREFS_PASSWORD, "");
-        String sPassphrase  = mTabWeavePrefs.getString(PREFS_PASSPHRASE, "");
-        String sSyncServerUrl   = "";
-
-        byte[] bytePrivateKeyDecrypted;
-        byte[] byteSymmetricKeyDecrypted;
-
-        mUserWeave      = new UserWeaveImpl();
-        mCryptoWeave    = new CryptoWeaveImpl();
-
-        // Redirect the user to the settings panel if any of the credentials are missing
-        if(
-            sUsername == "" ||
-            sPassword == "" ||
-            sPassphrase == ""
-        )
+        // Check the settings if the weaveNode is already known. If not, request it
+        if(sSyncServerUrl == "")
         {
-            showSettings();
-
-            return;
-        }
-
-        try {
-
-            // Check the settings if the weaveNode is already known. If not, request it
-            if(!mTabWeavePrefs.contains(PREFS_WEAVENODE))
-            {
-                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-                
+            mUserWeave      = new UserWeaveImpl();
+            
+            mTabWeavePrefsEdit = mTabWeavePrefs.edit();
+            
+            try {
                 mTabWeavePrefsEdit.putString("weaveNode", mUserWeave.getUserStorageNode(sUsername, null));
                 mTabWeavePrefsEdit.commit();
+            } catch (WeaveException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
-
-            sSyncServerUrl = mTabWeavePrefs.getString("weaveNode", null);
-            mSyncWeave      = new SyncWeaveImpl(sSyncServerUrl, sUsername, sPassword);
-
-            // Check settings storage for the user's private key
-            if(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, "") == "")
-            {
-                JSONObject oPrivKey     = mSyncWeave.getItem("keys", "privkey");
-                JSONObject oPrivPayload = new JSONObject(oPrivKey.getString("payload"));
-                //JSONObject oPubKey      = mSyncWeave.getItem("keys", "pubkey");
-
-                byte[] bytePrivateSalt     = Base64Coder.decode(oPrivPayload.getString("salt"));
-                byte[] bytePrivateIV       = Base64Coder.decode(oPrivPayload.getString("iv"));
-                byte[] bytePrivateKey   = Base64Coder.decode( oPrivPayload.getString("keyData"));
-
-                // This is a very long process on slow phones (and the emulator)
-                bytePrivateKeyDecrypted  = mCryptoWeave.decryptPrivateKey(sPassphrase, bytePrivateSalt, bytePrivateIV, bytePrivateKey);
-
-                // Save the generated private key
-                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-                mTabWeavePrefsEdit.putString(PREFS_PRIVATE_KEY, new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
-                mTabWeavePrefsEdit.commit();
-            }
-
-            bytePrivateKeyDecrypted     = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, ""));
-
-            if(!mTabWeavePrefs.contains(PREFS_CRYPTO_TABS_SYMMETRIC_KEY) || mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, "") == "")
-            {
-                JSONObject oCryptoTabs          = mSyncWeave.getItem("crypto", "tabs");
-                JSONObject oCryptoTabsPayload   = new JSONObject(oCryptoTabs.getString("payload"));
-                JSONArray oCryptoTabsKeyring    = new JSONObject(oCryptoTabsPayload.getString("keyring")).toJSONArray(oCryptoTabsPayload.getJSONObject("keyring").names());
-
-                byte[] byteSymmetricKey         = Base64Coder.decode(new JSONObject(oCryptoTabsKeyring.getString(0)).getString("wrapped"));
-                byteSymmetricKeyDecrypted    = mCryptoWeave.decryptSymmetricKey(bytePrivateKeyDecrypted, byteSymmetricKey);
-
-                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-                mTabWeavePrefsEdit.putString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
-                mTabWeavePrefsEdit.commit();
-            }
-
-            byteSymmetricKeyDecrypted   = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, ""));
-
-            // Request all tabs objects
-            JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
-            JSONObject[] oTabs      = new JSONObject[32];
-            List<JSONObject> lTabs  = new ArrayList<JSONObject>();
-
-            JSONObject oTabPayload;
-            byte[] byteTabCipherText;
-            String sTabCipherText;
-            byte[] byteTabCipherIV;
-
-            int iTabCount            = aCollection.length();
-            if(iTabCount > oTabs.length)
-            {
-                iTabCount   = oTabs.length;
-            }
-
-            for(int x = 0; x < iTabCount; x++)
-            {
-                //oTabs[x]    = mSyncWeave.getItem("tabs", aCollection.getString(x)); // Only needed when not requesting ?full=1
-                oTabs[x]         = aCollection.getJSONObject(x);
-
-                // Decrypt the ciphertext of this tab
-                oTabPayload     = new JSONObject(oTabs[x].getString("payload"));
-                byteTabCipherText  = Base64Coder.decode(oTabPayload.getString("ciphertext"));
-                byteTabCipherIV    = Base64Coder.decode(oTabPayload.getString("IV"));
-                sTabCipherText  = new String(mCryptoWeave.decryptCipherText(byteSymmetricKeyDecrypted, byteTabCipherIV, byteTabCipherText));
-
-                lTabs.add(x, new JSONObject(sTabCipherText));
-            }
-
-            fillData(lTabs);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WeaveException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
+        
+        refreshTabList();
     }
 
     public void fillData(List<JSONObject> lTabs)
@@ -302,10 +187,107 @@ public class TabWeave extends ListActivity {
                     Log.d("ACTIVITY_EDIT_SETTINGS", "Result from ACTIVITY_EDIT_SETTINGS was not 'OK'");
                 }
     
-                // Re-run the app from the beginning
-                onCreate(new Bundle());
+                // Re-read preference file
+                readPreferencesOrRedirectToSettings();
+                
+                // Recalculte crypto keys if necessary
+                prepareCryptoKeys();
     
                 break;
+        }
+    }
+    
+    private void readPreferencesOrRedirectToSettings() {
+        sUsername    = mTabWeavePrefs.getString(PREFS_USERNAME, "");
+        sPassword    = mTabWeavePrefs.getString(PREFS_PASSWORD, "");
+        sPassphrase  = mTabWeavePrefs.getString(PREFS_PASSPHRASE, "");
+        sSyncServerUrl = mTabWeavePrefs.getString(PREFS_WEAVENODE, "");
+        
+        // Redirect the user to the settings panel if any of the credentials are missing
+        if(sUsername == "" || sPassword == "" || sPassphrase == "") {
+            showSettings();
+
+            return;
+        }
+    }
+    
+    private void prepareCryptoKeys() {
+        try {
+            mSyncWeave      = new SyncWeaveImpl(sSyncServerUrl, sUsername, sPassword, sPassphrase);
+    
+            // Check settings storage for the user's private key
+            if(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, "") == "") {
+    
+                bytePrivateKeyDecrypted  = mSyncWeave.getPrivateKey();
+                
+                // Save the generated private key
+                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
+                mTabWeavePrefsEdit.putString(PREFS_PRIVATE_KEY, new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
+                mTabWeavePrefsEdit.commit();
+            }
+    
+            bytePrivateKeyDecrypted     = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, ""));
+    
+            if(mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, "") == "")
+            {
+                byteSymmetricKeyDecrypted   = mSyncWeave.getSymmetricKey(bytePrivateKeyDecrypted);
+    
+                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
+                mTabWeavePrefsEdit.putString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
+                mTabWeavePrefsEdit.commit();
+            }
+    
+            byteSymmetricKeyDecrypted   = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, ""));
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void refreshTabList()
+    {
+        JSONObject oTabPayload;
+        String sTabCipherText;
+        byte[] byteTabCipherText;
+        byte[] byteTabCipherIV;
+        CryptoWeave mCryptoWeave    = new CryptoWeaveImpl();
+        
+        try
+        {
+            // Retrieve or calculate the crypto keys
+            prepareCryptoKeys();
+            
+            // Request all tabs objects
+            JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
+            JSONObject[] oTabs      = new JSONObject[32];
+            List<JSONObject> lTabs  = new ArrayList<JSONObject>();
+    
+            int iTabCount           = aCollection.length();
+            if(iTabCount > oTabs.length)
+            {
+                iTabCount   = oTabs.length;
+            }
+    
+            for(int x = 0; x < iTabCount; x++)
+            {
+                //oTabs[x]    = mSyncWeave.getItem("tabs", aCollection.getString(x)); // Only needed when not requesting ?full=1
+                oTabs[x]         = aCollection.getJSONObject(x);
+    
+                // Decrypt the ciphertext of this tab
+                oTabPayload         = new JSONObject(oTabs[x].getString("payload"));
+                byteTabCipherText   = Base64Coder.decode(oTabPayload.getString("ciphertext"));
+                byteTabCipherIV     = Base64Coder.decode(oTabPayload.getString("IV"));
+                sTabCipherText      = new String(mCryptoWeave.decryptCipherText(byteSymmetricKeyDecrypted, byteTabCipherIV, byteTabCipherText));
+    
+                lTabs.add(x, new JSONObject(sTabCipherText));
+            }
+            
+            fillData(lTabs);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
         }
     }
 }
