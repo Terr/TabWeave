@@ -1,4 +1,10 @@
-package nl.terr.weave.exception;
+/**
+ * Source borrowed from the jweave project
+ * (http://code.google.com/p/jweave/source/browse/trunk/jweave/src/main/java/info/elebescond/weave/exception/WeaveException.java) 
+ * 
+ * Licensed under Mozilla Public License 1.1 (http://www.mozilla.org/MPL/)
+ */
+package info.elebescond.weave.exception;
 
 public class WeaveException extends Exception {
 
