@@ -6,8 +6,7 @@
 		android:layout_centerHorizontal="true" android:layout_centerVertical="true"
 		android:id="@+id/weaveLogoImageView"></ImageView>
 	<TextView android:layout_centerHorizontal="true"
-		android:layout_width="wrap_content" android:layout_below="@+id/ImageView01"
-		android:layout_height="wrap_content" android:id="@+id/statusMessage"></TextView>
+		android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/statusMessage" android:layout_below="@+id/weaveLogoImageView"></TextView>
 		<ListView android:id="@+id/android:list" android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:visibility="gone"/>
 </RelativeLayout>

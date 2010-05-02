@@ -19,17 +19,15 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.opengl.Visibility;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import biz.source_code.base64Coder.Base64Coder;
@@ -208,12 +206,6 @@ public class TabWeave extends ListActivity {
             
             checkPreferencesComplete();
             
-//            ImageView logoImageView = (ImageView)findViewById(R.id.weaveLogoImageView);
-            setContentView(R.layout.loading_screen);
-
-            TextView statusMessage = (TextView)findViewById(R.id.statusMessage);
-            statusMessage.setText("Generating cryptographic keys...");
-            
             Config mConfig = Config.getConfig(this);
             
             mSyncWeave      = new SyncWeaveImpl(mConfig.getWeaveNode(), mConfig.getUsername(), mConfig.getPassword(), mConfig.getPassphrase());
@@ -239,8 +231,6 @@ public class TabWeave extends ListActivity {
             }
     
             byteSymmetricKeyDecrypted   = Base64Coder.decode(mConfig.getSymmetricKey());
-            
-            setContentView(R.layout.main);
         }
         catch(Exception e)
         {
@@ -248,49 +238,73 @@ public class TabWeave extends ListActivity {
         }
     }
     
-    private void refreshTabList()
-    {
+    public void refreshTabList() {
+        new RefreshTabList().execute();
+    }
+    
+    private class RefreshTabList extends AsyncTask<Void, Void, List<JSONObject>> {
         JSONObject oTabPayload;
         String sTabCipherText;
         byte[] byteTabCipherText;
         byte[] byteTabCipherIV;
         CryptoWeave mCryptoWeave    = new CryptoWeaveImpl();
         
-        try
-        {
-            // Retrieve or calculate the crypto keys
-            prepareCryptoKeys();
+        protected void onPreExecute() {
+//          ImageView logoImageView = (ImageView)findViewById(R.id.weaveLogoImageView);
+          setContentView(R.layout.loading_screen);
+        
+          TextView statusMessage = (TextView)findViewById(R.id.statusMessage);
+          statusMessage.setText("Generating cryptographic keys...");
+
+        }
+        
+        protected List<JSONObject> doInBackground(Void... params) {
             
-            // Request all tabs objects
-            JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
-            JSONObject[] oTabs      = new JSONObject[32];
-            List<JSONObject> lTabs  = new ArrayList<JSONObject>();
-    
-            int iTabCount           = aCollection.length();
-            if(iTabCount > oTabs.length)
+            Log.d("RefreshTabList", "Starting doInBackground()");
+            
+            List<JSONObject> lTabs      = new ArrayList<JSONObject>();
+            
+            try
             {
-                iTabCount   = oTabs.length;
+                // Retrieve or calculate the crypto keys
+                prepareCryptoKeys();
+                
+                // Request all tabs objects
+                JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
+                JSONObject[] oTabs      = new JSONObject[32];
+        
+                int iTabCount           = aCollection.length();
+                if(iTabCount > oTabs.length)
+                {
+                    iTabCount   = oTabs.length;
+                }
+        
+                for(int x = 0; x < iTabCount; x++)
+                {
+                    //oTabs[x]    = mSyncWeave.getItem("tabs", aCollection.getString(x)); // Only needed when not requesting ?full=1
+                    oTabs[x]         = aCollection.getJSONObject(x);
+        
+                    // Decrypt the ciphertext of this tab
+                    oTabPayload         = new JSONObject(oTabs[x].getString("payload"));
+                    byteTabCipherText   = Base64Coder.decode(oTabPayload.getString("ciphertext"));
+                    byteTabCipherIV     = Base64Coder.decode(oTabPayload.getString("IV"));
+                    sTabCipherText      = new String(mCryptoWeave.decryptCipherText(byteSymmetricKeyDecrypted, byteTabCipherIV, byteTabCipherText));
+        
+                    lTabs.add(x, new JSONObject(sTabCipherText));
+                }
             }
-    
-            for(int x = 0; x < iTabCount; x++)
+            catch(Exception e)
             {
-                //oTabs[x]    = mSyncWeave.getItem("tabs", aCollection.getString(x)); // Only needed when not requesting ?full=1
-                oTabs[x]         = aCollection.getJSONObject(x);
-    
-                // Decrypt the ciphertext of this tab
-                oTabPayload         = new JSONObject(oTabs[x].getString("payload"));
-                byteTabCipherText   = Base64Coder.decode(oTabPayload.getString("ciphertext"));
-                byteTabCipherIV     = Base64Coder.decode(oTabPayload.getString("IV"));
-                sTabCipherText      = new String(mCryptoWeave.decryptCipherText(byteSymmetricKeyDecrypted, byteTabCipherIV, byteTabCipherText));
-    
-                lTabs.add(x, new JSONObject(sTabCipherText));
+                e.printStackTrace();
             }
+            
+            return lTabs;
+        }
+        
+        protected void onPostExecute(List<JSONObject> lTabs) {
+            setContentView(R.layout.main);
             
             fillData(lTabs);
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
         }
     }
 }
