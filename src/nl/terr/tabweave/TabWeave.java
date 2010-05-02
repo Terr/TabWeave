@@ -242,20 +242,21 @@ public class TabWeave extends ListActivity {
         new RefreshTabList().execute();
     }
     
-    private class RefreshTabList extends AsyncTask<Void, Void, List<JSONObject>> {
+    private class RefreshTabList extends AsyncTask<Void, String, List<JSONObject>> {
         JSONObject oTabPayload;
         String sTabCipherText;
         byte[] byteTabCipherText;
         byte[] byteTabCipherIV;
+        
         CryptoWeave mCryptoWeave    = new CryptoWeaveImpl();
+        
+        TextView statusMessage;
         
         protected void onPreExecute() {
 //          ImageView logoImageView = (ImageView)findViewById(R.id.weaveLogoImageView);
           setContentView(R.layout.loading_screen);
-        
-          TextView statusMessage = (TextView)findViewById(R.id.statusMessage);
-          statusMessage.setText("Generating cryptographic keys...");
-
+          
+          statusMessage = (TextView)findViewById(R.id.statusMessage);
         }
         
         protected List<JSONObject> doInBackground(Void... params) {
@@ -266,13 +267,19 @@ public class TabWeave extends ListActivity {
             
             try
             {
+                publishProgress("Loading cryptographic keys...");
+                
                 // Retrieve or calculate the crypto keys
                 prepareCryptoKeys();
+                
+                publishProgress("Retrieving tabs from server...");
                 
                 // Request all tabs objects
                 JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
                 JSONObject[] oTabs      = new JSONObject[32];
         
+                publishProgress("Decrypting data...");
+                
                 int iTabCount           = aCollection.length();
                 if(iTabCount > oTabs.length)
                 {
@@ -292,6 +299,8 @@ public class TabWeave extends ListActivity {
         
                     lTabs.add(x, new JSONObject(sTabCipherText));
                 }
+                
+                publishProgress("Done!");
             }
             catch(Exception e)
             {
@@ -299,6 +308,11 @@ public class TabWeave extends ListActivity {
             }
             
             return lTabs;
+        }
+        
+        protected void onProgressUpdate(String... params) {
+            
+            statusMessage.setText(params[0]);
         }
         
         protected void onPostExecute(List<JSONObject> lTabs) {
