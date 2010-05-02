@@ -5,6 +5,7 @@ import info.elebescond.weave.exception.WeaveException;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.terr.weave.Config;
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
 import nl.terr.weave.impl.CryptoWeaveImpl;
@@ -16,17 +17,19 @@ import org.json.JSONObject;
 
 import android.app.ListActivity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.MatrixCursor;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import biz.source_code.base64Coder.Base64Coder;
@@ -37,26 +40,9 @@ public class TabWeave extends ListActivity {
     private UserWeaveImpl mUserWeave;
     private SyncWeaveImpl mSyncWeave;
     private CryptoWeave mCryptoWeave;
-
-    public static final String PREFS_NAME = "TabWeavePrefs";
-    public static final String PREFS_PRIVATE_KEY    = "storageKeysPrivkey";
-    public static final String PREFS_CRYPTO_TABS_SYMMETRIC_KEY    = "storageCryptoTabsSymmetricKey";
-
+    
     public static final int ACTIVITY_EDIT_SETTINGS = 1;
 
-    public static final String PREFS_USERNAME = "username";
-    public static final String PREFS_PASSWORD = "password";
-    public static final String PREFS_PASSPHRASE = "passphrase";
-    public static final String PREFS_WEAVENODE = "weaveNode";
-
-    SharedPreferences mTabWeavePrefs;
-    SharedPreferences.Editor mTabWeavePrefsEdit;
-    
-    String sUsername;
-    String sPassword;
-    String sPassphrase;
-    String sSyncServerUrl;
-    
     byte[] bytePrivateKeyDecrypted; 
     byte[] byteSymmetricKeyDecrypted;
     
@@ -68,26 +54,10 @@ public class TabWeave extends ListActivity {
 
 //        mWeaveTabsDbAdapter = new TabWeaveDbAdapter(this);
 //        mWeaveTabsDbAdapter.open();
-
-        mTabWeavePrefs    = this.getSharedPreferences(PREFS_NAME, 0);
-        
-        readPreferencesOrRedirectToSettings();
-
-        // Check the settings if the weaveNode is already known. If not, request it
-        if(sSyncServerUrl == "")
-        {
-            mUserWeave      = new UserWeaveImpl();
-            
-            mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-            
-            try {
-                mTabWeavePrefsEdit.putString("weaveNode", mUserWeave.getUserStorageNode(sUsername, null));
-                mTabWeavePrefsEdit.commit();
-            } catch (WeaveException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+    }
+    
+    public void onStart() {
+        super.onStart();
         
         refreshTabList();
     }
@@ -156,17 +126,16 @@ public class TabWeave extends ListActivity {
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch(item.getItemId()) {
-        case R.id.menuSettings:
-            showSettings();
-            return true;
+            case R.id.menuSettings:
+                showSettings();
+                return true;
+            
+            case R.id.menuRefresh:
+                refreshTabList();
+                return true;
         }
 
         return super.onMenuItemSelected(featureId, item);
-    }
-
-    private void showSettings() {
-        Intent i    = new Intent(this, TabWeaveSettingsActivity.class);
-        startActivityForResult(i, ACTIVITY_EDIT_SETTINGS);
     }
 
     @Override
@@ -186,9 +155,6 @@ public class TabWeave extends ListActivity {
                 {
                     Log.d("ACTIVITY_EDIT_SETTINGS", "Result from ACTIVITY_EDIT_SETTINGS was not 'OK'");
                 }
-    
-                // Re-read preference file
-                readPreferencesOrRedirectToSettings();
                 
                 // Recalculte crypto keys if necessary
                 prepareCryptoKeys();
@@ -197,47 +163,84 @@ public class TabWeave extends ListActivity {
         }
     }
     
-    private void readPreferencesOrRedirectToSettings() {
-        sUsername    = mTabWeavePrefs.getString(PREFS_USERNAME, "");
-        sPassword    = mTabWeavePrefs.getString(PREFS_PASSWORD, "");
-        sPassphrase  = mTabWeavePrefs.getString(PREFS_PASSPHRASE, "");
-        sSyncServerUrl = mTabWeavePrefs.getString(PREFS_WEAVENODE, "");
+    /**
+     * Checks if all the required preferences for getting the tab data 
+     * are present. If not, launches settings activity
+     */
+    private void checkPreferencesComplete() {
+        Config mConfig  = Config.getConfig(this);
+        
+        String sUsername    = mConfig.getUsername();
+        String sPassword    = mConfig.getPassword();
+        String sPassphrase  = mConfig.getPassphrase();
+        String sSyncServerUrl = mConfig.getWeaveNode();
         
         // Redirect the user to the settings panel if any of the credentials are missing
         if(sUsername == "" || sPassword == "" || sPassphrase == "") {
             showSettings();
-
-            return;
+            
+            Log.d("chechkPreferencesComplete", "This log is placed after showSettings()");
+        }
+        
+        // Check the settings if the weaveNode is already known. If not, request it
+        if(sSyncServerUrl == "")
+        {
+            mUserWeave      = new UserWeaveImpl();
+            
+            try {
+                mConfig.setWeaveNode(mUserWeave.getUserStorageNode(sUsername, null));
+                mConfig.commit();
+                
+            } catch (WeaveException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
     
+    private void showSettings() {
+        Intent i    = new Intent(this, TabWeaveSettingsActivity.class);
+        startActivityForResult(i, ACTIVITY_EDIT_SETTINGS);
+    }
+
     private void prepareCryptoKeys() {
         try {
-            mSyncWeave      = new SyncWeaveImpl(sSyncServerUrl, sUsername, sPassword, sPassphrase);
+            
+            checkPreferencesComplete();
+            
+//            ImageView logoImageView = (ImageView)findViewById(R.id.weaveLogoImageView);
+            setContentView(R.layout.loading_screen);
+
+            TextView statusMessage = (TextView)findViewById(R.id.statusMessage);
+            statusMessage.setText("Generating cryptographic keys...");
+            
+            Config mConfig = Config.getConfig(this);
+            
+            mSyncWeave      = new SyncWeaveImpl(mConfig.getWeaveNode(), mConfig.getUsername(), mConfig.getPassword(), mConfig.getPassphrase());
     
             // Check settings storage for the user's private key
-            if(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, "") == "") {
+            if(mConfig.getPrivateKey() == "") {
     
                 bytePrivateKeyDecrypted  = mSyncWeave.getPrivateKey();
                 
                 // Save the generated private key
-                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-                mTabWeavePrefsEdit.putString(PREFS_PRIVATE_KEY, new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
-                mTabWeavePrefsEdit.commit();
+                mConfig.setPrivateKey(new String(Base64Coder.encode(bytePrivateKeyDecrypted)));
+                mConfig.commit();
             }
     
-            bytePrivateKeyDecrypted     = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_PRIVATE_KEY, ""));
+            bytePrivateKeyDecrypted     = Base64Coder.decode(mConfig.getPrivateKey());
     
-            if(mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, "") == "")
+            if(mConfig.getSymmetricKey() == "")
             {
                 byteSymmetricKeyDecrypted   = mSyncWeave.getSymmetricKey(bytePrivateKeyDecrypted);
     
-                mTabWeavePrefsEdit = mTabWeavePrefs.edit();
-                mTabWeavePrefsEdit.putString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
-                mTabWeavePrefsEdit.commit();
+                mConfig.setSymmetricKey(new String(Base64Coder.encode(byteSymmetricKeyDecrypted)));
+                mConfig.commit();
             }
     
-            byteSymmetricKeyDecrypted   = Base64Coder.decode(mTabWeavePrefs.getString(PREFS_CRYPTO_TABS_SYMMETRIC_KEY, ""));
+            byteSymmetricKeyDecrypted   = Base64Coder.decode(mConfig.getSymmetricKey());
+            
+            setContentView(R.layout.main);
         }
         catch(Exception e)
         {

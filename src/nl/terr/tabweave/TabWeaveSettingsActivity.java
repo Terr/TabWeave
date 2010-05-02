@@ -1,5 +1,6 @@
 package nl.terr.tabweave;
 
+import nl.terr.weave.Config;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,12 +12,11 @@ import android.widget.EditText;
 
 public class TabWeaveSettingsActivity extends Activity {
 
-    SharedPreferences mTabWeavePrefs;
-    SharedPreferences.Editor mTabWeavePrefsEdit;
-    
     EditText inputUsername;
     EditText inputPassword;
     EditText inputPassphrase;
+    
+    Config mConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,16 +24,16 @@ public class TabWeaveSettingsActivity extends Activity {
 
         setContentView(R.layout.settings);
 
-        mTabWeavePrefs = this.getSharedPreferences(TabWeave.PREFS_NAME, 0);
+        mConfig = Config.getConfig(this);
 
         inputUsername  = (EditText)findViewById(R.id.username);
         inputPassword  = (EditText)findViewById(R.id.password);
         inputPassphrase = (EditText)findViewById(R.id.passphrase);
         Button buttonSave       = (Button)findViewById(R.id.settingsSave);
 
-        inputUsername.setText(mTabWeavePrefs.getString(TabWeave.PREFS_USERNAME, ""));
-        inputPassword.setText(mTabWeavePrefs.getString(TabWeave.PREFS_PASSWORD, ""));
-        inputPassphrase.setText(mTabWeavePrefs.getString(TabWeave.PREFS_PASSPHRASE, ""));
+        inputUsername.setText(mConfig.getUsername());
+        inputPassword.setText(mConfig.getPassword());
+        inputPassphrase.setText(mConfig.getPassphrase());
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
 
@@ -41,13 +41,11 @@ public class TabWeaveSettingsActivity extends Activity {
             public void onClick(View v) {
                 Bundle bundle = new Bundle();
 
-                mTabWeavePrefsEdit  = mTabWeavePrefs.edit();
-                
                 // Check if any of the old settings are changed. If so, write all settings and delete crypto
                 // keys so they will be regenerated
-                String sOldUsername = mTabWeavePrefs.getString(TabWeave.PREFS_USERNAME, "");
-                String sOldPassword = mTabWeavePrefs.getString(TabWeave.PREFS_PASSWORD, "");
-                String sOldPassphrase = mTabWeavePrefs.getString(TabWeave.PREFS_PASSPHRASE, "");
+                String sOldUsername = mConfig.getUsername();
+                String sOldPassword = mConfig.getPassword();
+                String sOldPassphrase = mConfig.getPassphrase();
                 
                 String sNewUsername = inputUsername.getText().toString();
                 String sNewPassword = inputPassword.getText().toString();
@@ -65,15 +63,16 @@ public class TabWeaveSettingsActivity extends Activity {
                 {
                     Log.d("TabWeaveSettings", "Credentials have changed");
 
-                    mTabWeavePrefsEdit.putString(TabWeave.PREFS_USERNAME, sNewUsername);
-                    mTabWeavePrefsEdit.putString(TabWeave.PREFS_PASSWORD, sNewPassword);
-                    mTabWeavePrefsEdit.putString(TabWeave.PREFS_PASSPHRASE, sNewPassphrase);
+                    mConfig.setUsername(sNewUsername);
+                    mConfig.setPassword(sNewPassword);
+                    mConfig.setPassphrase(sNewPassphrase);
 
-                    mTabWeavePrefsEdit.remove(TabWeave.PREFS_WEAVENODE);
-                    mTabWeavePrefsEdit.remove(TabWeave.PREFS_PRIVATE_KEY);
-                    mTabWeavePrefsEdit.remove(TabWeave.PREFS_CRYPTO_TABS_SYMMETRIC_KEY);
+                    // Remove values so they can be regenerated
+                    mConfig.setWeaveNode("");
+                    mConfig.setPrivateKey("");
+                    mConfig.setSymmetricKey("");
 
-                    mTabWeavePrefsEdit.commit();
+                    mConfig.commit();
                 }
 
                 mIntent.putExtras(bundle);
