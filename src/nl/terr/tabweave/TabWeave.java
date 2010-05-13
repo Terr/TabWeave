@@ -115,7 +115,7 @@ public class TabWeave extends ListActivity {
         } catch (Exception e) {
             e.printStackTrace();
             
-            AlertDialog alert   = createAlertDialog(this, "Warning", e.getMessage());
+            AlertDialog alert   = createAlertDialog(this, e.getClass().toString(), e.getMessage());
             alert.show();
         }
 
@@ -372,7 +372,7 @@ public class TabWeave extends ListActivity {
 
                 exception.printStackTrace();
 
-                AlertDialog alert   = createAlertDialog(TabWeave.this, "Warning", exception.getMessage());
+                AlertDialog alert   = createAlertDialog(TabWeave.this, exception.getClass().toString(), exception.getMessage());
                 alert.show();
             }
             else
