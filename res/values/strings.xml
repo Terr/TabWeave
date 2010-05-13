@@ -13,4 +13,5 @@
 <string name="status_retrieving_tabs">Retrieving tabs from server...</string>
 <string name="status_loading_crypto_keys">Loading cryptographic keys...</string>
 <string name="status_decrypting_data">Decrypting data...</string>
+<string name="show_passwords">Show passwords</string>
 </resources>

@@ -3,11 +3,13 @@ package nl.terr.tabweave;
 import nl.terr.weave.Config;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 
 public class TabWeaveSettingsActivity extends Activity {
@@ -30,13 +32,13 @@ public class TabWeaveSettingsActivity extends Activity {
         inputPassword  = (EditText)findViewById(R.id.password);
         inputPassphrase = (EditText)findViewById(R.id.passphrase);
         Button buttonSave       = (Button)findViewById(R.id.settingsSave);
+        CheckBox cbShowPasswords    = (CheckBox)findViewById(R.id.showPasswords);
 
         inputUsername.setText(mConfig.getUsername());
         inputPassword.setText(mConfig.getPassword());
         inputPassphrase.setText(mConfig.getPassphrase());
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 Bundle bundle = new Bundle();
@@ -80,5 +82,21 @@ public class TabWeaveSettingsActivity extends Activity {
                 finish();
             }
         });
+        
+        cbShowPasswords.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    inputPassword.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                    inputPassphrase.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                }
+                else
+                {
+                    inputPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                    inputPassphrase.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+            }
+        });
     }
 }
+
