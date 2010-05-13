@@ -113,8 +113,10 @@ public class TabWeave extends ListActivity {
                 }
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
+            
+            AlertDialog alert   = createAlertDialog(this, "Warning", e.getMessage());
+            alert.show();
         }
 
         ListAdapter listAdapter    = new SimpleCursorAdapter(
