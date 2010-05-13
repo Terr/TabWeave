@@ -13,5 +13,6 @@
 <string name="status_retrieving_tabs">Retrieving tabs from server...</string>
 <string name="status_loading_crypto_keys">Loading cryptographic keys...</string>
 <string name="status_decrypting_data">Decrypting data...</string>
+<string name="status_generating_crypto_keys">Generating cryptographic keys...\nThis may take 2 to 5 minutes. This is done only once after changing your account settings.</string>
 <string name="show_passwords">Show passwords</string>
 </resources>
