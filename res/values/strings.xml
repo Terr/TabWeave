@@ -2,7 +2,7 @@
 <resources>
     <string name="hello">Hello World, TabWeave!</string>
     <string name="app_name">Tab Weave</string>
-<string name="no_tabs">No tabs</string>
+<string name="no_tabs">No tabs found on server.</string>
 <string name="username">Username</string>
 <string name="password">Password</string>
 <string name="passphrase">Passphrase</string>
@@ -10,4 +10,7 @@
 <string name="settings">Settings</string>
 <string name="refresh">Refresh</string>
 <string name="http_unauthorized">Your Weave username or password is incorrect. Please check the settings menu.</string>
+<string name="status_retrieving_tabs">Retrieving tabs from server...</string>
+<string name="status_loading_crypto_keys">Loading cryptographic keys...</string>
+<string name="status_decrypting_data">Decrypting data...</string>
 </resources>

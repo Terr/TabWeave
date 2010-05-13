@@ -296,18 +296,18 @@ public class TabWeave extends ListActivity {
 
             try
             {
-                publishProgress("Loading cryptographic keys...");
+                publishProgress(getString(R.string.status_loading_crypto_keys));
 
                 // Retrieve or calculate the crypto keys
                 prepareCryptoKeys();
 
-                publishProgress("Retrieving tabs from server...");
+                publishProgress(getString(R.string.status_retrieving_tabs));
 
                 // Request all tabs objects
                 JSONArray aCollection   = mSyncWeave.getCollection("tabs?full=1");
                 JSONObject[] oTabs      = new JSONObject[32];
 
-                publishProgress("Decrypting data...");
+                publishProgress(getString(R.string.status_decrypting_data));
 
                 int iTabCount           = aCollection.length();
                 if(iTabCount > oTabs.length)
