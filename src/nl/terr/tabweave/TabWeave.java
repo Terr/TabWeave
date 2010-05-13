@@ -223,8 +223,7 @@ public class TabWeave extends ListActivity {
 
         Config mConfig = Config.getConfig(this);
 
-        //mConfig.getUsername()
-        mSyncWeave      = new SyncWeaveImpl(mConfig.getWeaveNode(), "Jemoeder", mConfig.getPassword(), mConfig.getPassphrase());
+        mSyncWeave      = new SyncWeaveImpl(mConfig.getWeaveNode(), mConfig.getUsername(), mConfig.getPassword(), mConfig.getPassphrase());
 
         // Check settings storage for the user's private key
         if(mConfig.getPrivateKey() == "") {
