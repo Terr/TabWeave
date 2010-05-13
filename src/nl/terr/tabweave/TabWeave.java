@@ -86,11 +86,21 @@ public class TabWeave extends ListActivity {
         MatrixCursor matrixCursor   = new MatrixCursor(from);
 
         int iTabId  = 0;
+        
+        // Show "No tabs" message
+        TextView    tvNoTabs    = (TextView)findViewById(R.id.no_tabs);
+        tvNoTabs.setVisibility(View.VISIBLE);
+        
 
         try {
             for(int iWeaveBrowserInstance = 0; iWeaveBrowserInstance < iBrowserInstances; iWeaveBrowserInstance++)
             {
                 int iNumberTabs = lTabs.get(iWeaveBrowserInstance).getJSONArray("tabs").length();
+                
+                // Hide "No tabs" message
+                if(iNumberTabs > 0) {
+                    tvNoTabs.setVisibility(View.INVISIBLE);
+                }
 
                 for(int iWeaveTab = 0; iWeaveTab < iNumberTabs; iWeaveTab++)
                 {
