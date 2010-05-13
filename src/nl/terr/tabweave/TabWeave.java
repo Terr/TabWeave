@@ -204,6 +204,7 @@ public class TabWeave extends ListActivity {
         if(sUsername == "" || sPassword == "" || sPassphrase == "") {
             showSettings();
 
+            Log.d("checkPreferencesComplete", "This log is placed after showSettings()");
             Log.d("chechkPreferencesComplete", "This log is placed after showSettings()");
         }
 
