@@ -50,6 +50,7 @@ public final class R {
     public static final class string {
         public static final int app_name=0x7f040001;
         public static final int hello=0x7f040000;
+        public static final int http_unauthorized=0x7f040009;
         public static final int no_tabs=0x7f040002;
         public static final int passphrase=0x7f040005;
         public static final int password=0x7f040004;

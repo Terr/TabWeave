@@ -15,6 +15,8 @@ import nl.sanderborgman.http.HttpRequest;
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,24 +63,19 @@ public class SyncWeaveImpl implements SyncWeave {
 
     @Override
     public JSONArray getCollection(String sCollection)
-        throws WeaveException {
+        throws HttpResponseException, ClientProtocolException, IOException, JSONException
+         {
 
         DefaultHttpClient client    = new DefaultHttpClient();
         String sUrl                 = getSyncApiUrl() + "/storage/" + sCollection;
         String response             = "";
         JSONArray jsonArray         = new JSONArray();
 
-        try {
-            response   = HttpRequest.get(client, sUrl, this.sUsername, this.sPassword);
+        response   = HttpRequest.get(client, sUrl, this.sUsername, this.sPassword);
 
-            jsonArray   = new JSONArray(response);
+        jsonArray   = new JSONArray(response);
 
-            Log.d("getCollection", response);
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Log.d("getCollection", response);
 
         client.getConnectionManager().shutdown();
 
@@ -86,28 +83,19 @@ public class SyncWeaveImpl implements SyncWeave {
     }
 
     public JSONObject getItem(String sCollection, String sId)
-        throws WeaveException {
+        throws WeaveException, HttpResponseException, ClientProtocolException, IOException, JSONException {
 
         DefaultHttpClient client    = new DefaultHttpClient();
         String sUrl                 = getSyncApiUrl() + "/storage/" + sCollection + "/" + sId;
         String response             = "";
         JSONObject jsonObject       = new JSONObject();
 
-        try {
-            response   = HttpRequest.get(client, sUrl, this.sUsername, this.sPassword);
+        response   = HttpRequest.get(client, sUrl, this.sUsername, this.sPassword);
 
-            jsonObject   = new JSONObject(response);
+        jsonObject   = new JSONObject(response);
 
-            Log.d("getItem", response);
+        Log.d("getItem", response);
 
-        } catch (JSONException e) {
-            Log.d("getItem", "Response not in JSON Object format");
-
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
 
         client.getConnectionManager().shutdown();
 

@@ -9,4 +9,5 @@
 <string name="save">Save</string>
 <string name="settings">Settings</string>
 <string name="refresh">Refresh</string>
+<string name="http_unauthorized">Your Weave username or password is incorrect. Please check the settings menu.</string>
 </resources>

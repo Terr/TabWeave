@@ -11,6 +11,8 @@ import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.NoSuchPaddingException;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,10 +25,10 @@ public interface SyncWeave {
     public static String KEY_ROWID  = "_id";
 
     public JSONArray getCollection(String sCollection)
-        throws WeaveException;
+        throws WeaveException, HttpResponseException, ClientProtocolException, IOException, JSONException;
 
     public JSONObject getItem(String sCollection, String sId)
-        throws WeaveException;
+        throws WeaveException, HttpResponseException, ClientProtocolException, IOException, JSONException;
 
     public void setUsername(String sUsername);
 
