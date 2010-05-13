@@ -205,7 +205,6 @@ public class TabWeave extends ListActivity {
             showSettings();
 
             Log.d("checkPreferencesComplete", "This log is placed after showSettings()");
-            Log.d("chechkPreferencesComplete", "This log is placed after showSettings()");
         }
 
         // Check the settings if the weaveNode is already known. If not, request it
