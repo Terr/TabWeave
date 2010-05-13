@@ -308,7 +308,17 @@ public class TabWeave extends ListActivity {
 
             try
             {
-                publishProgress(getString(R.string.status_loading_crypto_keys));
+                Config mConfig = Config.getConfig(TabWeave.this);
+                
+                // If keys are missing
+                if(mConfig.getPrivateKey() == "" || mConfig.getSymmetricKey() == "") {
+                    publishProgress(getString(R.string.status_generating_crypto_keys));
+                }
+                // Keys are not missing and can be loaded
+                else
+                {
+                    publishProgress(getString(R.string.status_loading_crypto_keys));
+                }
 
                 // Retrieve or calculate the crypto keys
                 prepareCryptoKeys();
