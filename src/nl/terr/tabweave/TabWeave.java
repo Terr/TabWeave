@@ -64,9 +64,6 @@ public class TabWeave extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-//        mWeaveTabsDbAdapter = new TabWeaveDbAdapter(this);
-//        mWeaveTabsDbAdapter.open();
     }
 
     @Override
