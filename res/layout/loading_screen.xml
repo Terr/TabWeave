@@ -13,7 +13,6 @@
 		android:layout_height="wrap_content"
 		android:id="@+id/statusMessage"
 		android:layout_below="@+id/weaveLogoImageView"
-		android:text="@string/status_generating_crypto_keys"
 		android:gravity="center_horizontal"></TextView>
 	<ListView
 		android:id="@+id/android:list"
