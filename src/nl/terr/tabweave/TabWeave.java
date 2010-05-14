@@ -166,10 +166,10 @@ public class TabWeave extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        if(resultCode == RESULT_OK)
+        /*if(resultCode == RESULT_OK)
         {
             Bundle extras   = intent.getExtras();
-        }
+        }*/
 
         switch(requestCode)
         {
