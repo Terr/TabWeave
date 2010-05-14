@@ -1,9 +1,13 @@
 package nl.terr.weave.impl;
 
 import info.elebescond.weave.exception.WeaveException;
+
+import java.io.IOException;
+
 import nl.sanderborgman.http.HttpRequest;
 import nl.terr.weave.UserWeave;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.util.Log;
@@ -72,21 +76,16 @@ public class UserWeaveImpl implements UserWeave {
 
     @Override
     public String getUserStorageNode(String sUserId, String sPassword)
-            throws WeaveException {
+            throws ClientProtocolException, IOException {
 
         DefaultHttpClient client    = new DefaultHttpClient();
         String response             = "";
 
         String sUrl = getUserApiUrl() + sUserId + "/node/weave";
 
-        try {
-            response   = HttpRequest.get(client, sUrl);
+        response   = HttpRequest.get(client, sUrl);
 
-            Log.d("getUserStorageNode", response);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        Log.d("getUserStorageNode", response);
 
         client.getConnectionManager().shutdown();
 

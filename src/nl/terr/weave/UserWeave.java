@@ -1,5 +1,9 @@
 package nl.terr.weave;
 
+import java.io.IOException;
+
+import org.apache.http.client.ClientProtocolException;
+
 import info.elebescond.weave.exception.WeaveException;
 
 public interface UserWeave {
@@ -97,9 +101,11 @@ public interface UserWeave {
 	 * @param userId
 	 * @param password
 	 * @return
+	 * @throws IOException 
+	 * @throws ClientProtocolException 
 	 */
 	public String getUserStorageNode(String userId, String password)
-			throws WeaveException;
+			throws WeaveException, ClientProtocolException, IOException;
 
 	/**
 	 * Requests a password reset email be mailed to the email address on file.
