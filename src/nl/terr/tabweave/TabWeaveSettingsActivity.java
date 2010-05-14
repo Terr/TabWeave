@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -36,7 +36,7 @@ public class TabWeaveSettingsActivity extends Activity {
     EditText inputUsername;
     EditText inputPassword;
     EditText inputPassphrase;
-    
+
     Config mConfig;
 
     @Override
@@ -67,14 +67,14 @@ public class TabWeaveSettingsActivity extends Activity {
                 String sOldUsername = mConfig.getUsername();
                 String sOldPassword = mConfig.getPassword();
                 String sOldPassphrase = mConfig.getPassphrase();
-                
+
                 String sNewUsername = inputUsername.getText().toString();
                 String sNewPassword = inputPassword.getText().toString();
                 String sNewPassphrase   = inputPassphrase.getText().toString();
 
                 Intent mIntent = new Intent();
 
-                // Check if any of the credentials have changed. If so, delete the cryptographic 
+                // Check if any of the credentials have changed. If so, delete the cryptographic
                 // keys so they will be regenerated
                 if(
                         !sNewUsername.equals(sOldUsername) ||
@@ -96,13 +96,13 @@ public class TabWeaveSettingsActivity extends Activity {
 
                     mConfig.commit();
                 }
-                
+
                 mIntent.putExtras(bundle);
                 setResult(RESULT_OK, mIntent);
                 finish();
             }
         });
-        
+
         cbShowPasswords.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

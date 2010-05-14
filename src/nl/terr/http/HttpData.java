@@ -1,6 +1,6 @@
 /**
  * HTTP request class
- * 
+ *
  * Inspired by blog post from Sander Borgman (http://sanderborgman.nl/android/android-httprequest-class/)
  */
 package nl.terr.http;

@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -130,7 +130,7 @@ public class SyncWeaveImpl implements SyncWeave {
     public void setPassword(String sPassword) {
         this.sPassword  = sPassword;
     }
-    
+
     @Override
     public void setPassphrase(String sPassphrase) {
         this.sPassphrase    = sPassphrase;
@@ -139,7 +139,7 @@ public class SyncWeaveImpl implements SyncWeave {
     @Override
     public byte[] getPrivateKey()
         throws WeaveException, JSONException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
-        
+
         JSONObject oPrivKey     = this.getItem("keys", "privkey");
         JSONObject oPrivPayload = new JSONObject(oPrivKey.getString("payload"));
 
@@ -148,27 +148,27 @@ public class SyncWeaveImpl implements SyncWeave {
         byte[] bytePrivateKey   = Base64Coder.decode(oPrivPayload.getString("keyData"));
 
         CryptoWeave mCryptoWeave    = new CryptoWeaveImpl();
-        
+
         // This is a very long process on slow phones (and the emulator)
         byte[] bytePrivateKeyDecrypted = mCryptoWeave.decryptPrivateKey(sPassphrase, bytePrivateSalt, bytePrivateIV, bytePrivateKey);
-        
+
         return bytePrivateKeyDecrypted;
     }
 
     @Override
     public byte[] getSymmetricKey(byte[] bytePrivateKeyDecrypted)
-        throws WeaveException, JSONException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException, InvalidKeySpecException { 
-        
+        throws WeaveException, JSONException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException, InvalidKeySpecException {
+
         JSONObject oCryptoTabs          = this.getItem("crypto", "tabs");
         JSONObject oCryptoTabsPayload   = new JSONObject(oCryptoTabs.getString("payload"));
         JSONArray oCryptoTabsKeyring    = new JSONObject(oCryptoTabsPayload.getString("keyring")).toJSONArray(oCryptoTabsPayload.getJSONObject("keyring").names());
 
         byte[] byteSymmetricKey         = Base64Coder.decode(new JSONObject(oCryptoTabsKeyring.getString(0)).getString("wrapped"));
-        
+
         CryptoWeave mCryptoWeave        = new CryptoWeaveImpl();
-        
+
         byte[] byteSymmetricKeyDecrypted = mCryptoWeave.decryptSymmetricKey(bytePrivateKeyDecrypted, byteSymmetricKey);
-        
+
         return byteSymmetricKeyDecrypted;
     }
 }

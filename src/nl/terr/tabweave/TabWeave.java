@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -35,7 +35,6 @@ import javax.crypto.NoSuchPaddingException;
 import nl.terr.weave.Config;
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
-import nl.terr.weave.UserWeave;
 import nl.terr.weave.impl.CryptoWeaveImpl;
 import nl.terr.weave.impl.SyncWeaveImpl;
 import nl.terr.weave.impl.UserWeaveImpl;
@@ -104,7 +103,7 @@ public class TabWeave extends ListActivity {
         MatrixCursor matrixCursor   = new MatrixCursor(from);
 
         int iTabId  = 0;
-        
+
         // Show "No tabs" message
         TextView    tvNoTabs    = (TextView)findViewById(R.id.no_tabs);
         tvNoTabs.setVisibility(View.VISIBLE);
@@ -113,7 +112,7 @@ public class TabWeave extends ListActivity {
             for(int iWeaveBrowserInstance = 0; iWeaveBrowserInstance < iBrowserInstances; iWeaveBrowserInstance++)
             {
                 int iNumberTabs = lTabs.get(iWeaveBrowserInstance).getJSONArray("tabs").length();
-                
+
                 // Hide "No tabs" message
                 if(iNumberTabs > 0) {
                     tvNoTabs.setVisibility(View.INVISIBLE);
@@ -131,7 +130,7 @@ public class TabWeave extends ListActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            
+
             AlertDialog alert   = createAlertDialog(this, e.getClass().toString(), e.getMessage());
             alert.show();
         }
@@ -208,13 +207,13 @@ public class TabWeave extends ListActivity {
     /**
      * Checks if all the required preferences for getting the tab data
      * are present.
-     * @throws IOException 
-     * @throws WeaveException 
-     * @throws ClientProtocolException 
+     * @throws IOException
+     * @throws WeaveException
+     * @throws ClientProtocolException
      */
     private boolean checkPreferencesComplete()
         throws ClientProtocolException, WeaveException, IOException {
-        
+
         Config mConfig  = Config.getConfig(this);
 
         String sUsername    = mConfig.getUsername();
@@ -231,11 +230,11 @@ public class TabWeave extends ListActivity {
             if(sSyncServerUrl == "")
             {
                 mUserWeave      = new UserWeaveImpl();
-    
+
                 mConfig.setWeaveNode(mUserWeave.getUserStorageNode(sUsername, null));
                 mConfig.commit();
             }
-            
+
             return true;
         }
     }
@@ -335,7 +334,7 @@ public class TabWeave extends ListActivity {
             try
             {
                 Config mConfig = Config.getConfig(TabWeave.this);
-                
+
                 // If keys are missing
                 if(mConfig.getPrivateKey() == "" || mConfig.getSymmetricKey() == "") {
                     publishProgress(getString(R.string.status_generating_crypto_keys));
@@ -383,19 +382,19 @@ public class TabWeave extends ListActivity {
                 {
                     exception   = new HttpResponseException(401, getString(R.string.http_unauthorized));
                 }
-                
+
                 cancel(true);
             }
             catch(IOException e)
             {
                 exception   = new IOException(getString(R.string.passphrase_incorrect));
-                
+
                 cancel(true);
             }
             catch(IllegalStateException e)
             {
                 exception   = new IllegalStateException(getString(R.string.no_server_info));
-                
+
                 cancel(true);
             }
             catch(Exception e)
