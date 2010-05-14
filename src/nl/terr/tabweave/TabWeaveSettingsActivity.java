@@ -73,10 +73,11 @@ public class TabWeaveSettingsActivity extends Activity {
                     mConfig.setWeaveNode("");
                     mConfig.setPrivateKey("");
                     mConfig.setSymmetricKey("");
+                    mConfig.setWeaveNode("");
 
                     mConfig.commit();
                 }
-
+                
                 mIntent.putExtras(bundle);
                 setResult(RESULT_OK, mIntent);
                 finish();
