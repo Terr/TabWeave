@@ -15,6 +15,6 @@
 <string name="status_decrypting_data">Decrypting data...</string>
 <string name="status_generating_crypto_keys">Generating cryptographic keys...\nThis may take 2 to 5 minutes. This is done only once after changing your account settings.</string>
 <string name="show_passwords">Show passwords</string>
-<string name="passphrase_incorrect">The passphrase entered in the settings screen is incorrent. Please correct it and then choose 'Refresh' from the menu.</string>
-<string name="no_server_info">Server information could not be found. Please check your settings and then choose 'Refresh' from the menu.</string>
+<string name="passphrase_incorrect">The passphrase you entered is incorrect. Please check the settings menu.</string>
+<string name="no_server_info">Server information could not be retrieved. Maybe your username or password is incorrect or the Weave server is unreachable.</string>
 </resources>
