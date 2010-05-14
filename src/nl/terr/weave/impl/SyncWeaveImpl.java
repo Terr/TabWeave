@@ -11,7 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.NoSuchPaddingException;
 
-import nl.sanderborgman.http.HttpRequest;
+import nl.terr.http.HttpRequest;
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
 

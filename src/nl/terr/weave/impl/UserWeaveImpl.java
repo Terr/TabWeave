@@ -4,7 +4,7 @@ import info.elebescond.weave.exception.WeaveException;
 
 import java.io.IOException;
 
-import nl.sanderborgman.http.HttpRequest;
+import nl.terr.http.HttpRequest;
 import nl.terr.weave.UserWeave;
 
 import org.apache.http.client.ClientProtocolException;
