@@ -1,4 +1,5 @@
 /**
+ * 
  * Source borrowed from the jweave project
  * (http://code.google.com/p/jweave/source/browse/trunk/jweave/src/main/java/info/elebescond/weave/exception/WeaveException.java) 
  * 
