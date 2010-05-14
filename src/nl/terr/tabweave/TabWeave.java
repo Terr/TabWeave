@@ -357,6 +357,20 @@ public class TabWeave extends ListActivity {
                 {
                     exception   = new HttpResponseException(401, getString(R.string.http_unauthorized));
                 }
+                
+                cancel(true);
+            }
+            catch(IOException e)
+            {
+                exception   = new IOException(getString(R.string.passphrase_incorrect));
+                
+                cancel(true);
+            }
+            catch(IllegalStateException e)
+            {
+                exception   = new IllegalStateException(getString(R.string.no_server_info));
+                
+                cancel(true);
             }
             catch(Exception e)
             {
