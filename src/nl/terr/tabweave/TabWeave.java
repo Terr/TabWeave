@@ -230,7 +230,7 @@ public class TabWeave extends ListActivity {
         {
             if(sSyncServerUrl == "")
             {
-                UserWeave mUserWeave      = new UserWeaveImpl();
+                mUserWeave      = new UserWeaveImpl();
     
                 mConfig.setWeaveNode(mUserWeave.getUserStorageNode(sUsername, null));
                 mConfig.commit();
