@@ -16,10 +16,12 @@ import javax.crypto.NoSuchPaddingException;
 import nl.terr.weave.Config;
 import nl.terr.weave.CryptoWeave;
 import nl.terr.weave.SyncWeave;
+import nl.terr.weave.UserWeave;
 import nl.terr.weave.impl.CryptoWeaveImpl;
 import nl.terr.weave.impl.SyncWeaveImpl;
 import nl.terr.weave.impl.UserWeaveImpl;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -90,7 +92,6 @@ public class TabWeave extends ListActivity {
         // Show "No tabs" message
         TextView    tvNoTabs    = (TextView)findViewById(R.id.no_tabs);
         tvNoTabs.setVisibility(View.VISIBLE);
-        
 
         try {
             for(int iWeaveBrowserInstance = 0; iWeaveBrowserInstance < iBrowserInstances; iWeaveBrowserInstance++)
@@ -190,9 +191,14 @@ public class TabWeave extends ListActivity {
 
     /**
      * Checks if all the required preferences for getting the tab data
-     * are present. If not, launches settings activity
+     * are present.
+     * @throws IOException 
+     * @throws WeaveException 
+     * @throws ClientProtocolException 
      */
-    private void checkPreferencesComplete() {
+    private boolean checkPreferencesComplete()
+        throws ClientProtocolException, WeaveException, IOException {
+        
         Config mConfig  = Config.getConfig(this);
 
         String sUsername    = mConfig.getUsername();
@@ -202,24 +208,19 @@ public class TabWeave extends ListActivity {
 
         // Redirect the user to the settings panel if any of the credentials are missing
         if(sUsername == "" || sPassword == "" || sPassphrase == "") {
-            showSettings();
-
-            Log.d("checkPreferencesComplete", "This log is placed after showSettings()");
+            return false;
         }
-
-        // Check the settings if the weaveNode is already known. If not, request it
-        if(sSyncServerUrl == "")
+        else
         {
-            mUserWeave      = new UserWeaveImpl();
-
-            try {
+            if(sSyncServerUrl == "")
+            {
+                UserWeave mUserWeave      = new UserWeaveImpl();
+    
                 mConfig.setWeaveNode(mUserWeave.getUserStorageNode(sUsername, null));
                 mConfig.commit();
-
-            } catch (WeaveException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
+            
+            return true;
         }
     }
 
@@ -230,8 +231,6 @@ public class TabWeave extends ListActivity {
 
     private void prepareCryptoKeys()
         throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, WeaveException, JSONException, IOException, InvalidKeySpecException {
-
-        checkPreferencesComplete();
 
         Config mConfig = Config.getConfig(this);
 
@@ -261,10 +260,21 @@ public class TabWeave extends ListActivity {
     }
 
     public void refreshTabList() {
-        new RefreshTabList().execute();
+        try {
+            if(checkPreferencesComplete()) {
+                new RefreshTabList().execute();
+            }
+            else
+            {
+                showSettings();
+            }
+        } catch (Exception e) {
+            AlertDialog alert   = createAlertDialog(this, e.getClass().toString(), e.getMessage());
+            alert.show();
+        }
     }
 
-    private AlertDialog createAlertDialog(Context context, String sTitle, String sMessage) {
+    public AlertDialog createAlertDialog(Context context, String sTitle, String sMessage) {
         AlertDialog.Builder builder = new AlertDialog.Builder(TabWeave.this);
         builder.setTitle(sTitle)
             .setMessage(sMessage)
